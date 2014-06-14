@@ -24,10 +24,9 @@ class ItemMover implements Runnable {
 		this.item = item;
 		target = item.getLocation().getBlock();
 		color = DyeColor.getByWoolData(target.getData());
-		item.setPickupDelay(100000);
 		
 		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-		task = scheduler.scheduleSyncRepeatingTask(Transport.Instance, this, 0l, 3l);
+		task = scheduler.scheduleSyncRepeatingTask(Transport.Instance, this, 2l, 2l);
 	}
 	
 	public void Cancel() {
@@ -53,6 +52,7 @@ class ItemMover implements Runnable {
 	
 	@Override
 	public void run(){
+		item.setPickupDelay(10);
 		if (item == null) {
 			Cancel();
 			return;
@@ -69,19 +69,23 @@ class ItemMover implements Runnable {
 		
 		Block curr = item.getLocation().getBlock();
 		
-		if (curr.equals(target) || v == null) {
+		if (	curr.equals(target) && (direction == null || pastBlockCenter(target, direction, item.getLocation())) 
+				|| v == null) {
+			
+			
 			//Time to choose a new target
 			if (curr.getType() == Material.CARPET) {
 				BlockFace nextFace = FindNext(curr, direction != null ? direction.getOppositeFace() : null);
 				
 				if (nextFace == null) {
 					//We are at the end of the line
+					Bukkit.getLogger().info("ENd of line");
 					Cancel();
 					return;
 				}
 				
 				target = target.getRelative(nextFace);
-				double speed = 0.2;
+				double speed = 0.3;
 				switch (nextFace) {
 					case NORTH:
 						v = new Vector(0,0,-speed);
@@ -101,6 +105,7 @@ class ItemMover implements Runnable {
 				}
 				direction = nextFace;
 			} else {
+				Bukkit.getLogger().info("Not on carpet");
 				Cancel();
 				return;
 			}
@@ -109,9 +114,29 @@ class ItemMover implements Runnable {
 		item.setVelocity(v);
 	}
 	
+	private static boolean pastBlockCenter(Block target, BlockFace direction, Location loc) {
+		Location bc = blockCenter(target);
+		switch(direction) {
+			case NORTH:
+				return bc.getZ() > loc.getZ();
+			case SOUTH:
+				return bc.getZ() < loc.getZ();
+			case EAST:
+				return bc.getX() < loc.getX();
+			case WEST:
+				return bc.getX() > loc.getX();
+			default:
+				return false;
+		}
+	}
+
+	private static Location blockCenter(Block block) {
+		return block.getLocation().add(0.5, 0, 0.5);
+	}
+
 	public static ItemMover StartItem(ItemStack stack, Location loc) {
 		//center loc
-		loc = loc.getBlock().getLocation().add(0.5, 0, 0.5);
+		loc = blockCenter(loc.getBlock());
 		
 		return new ItemMover(loc.getWorld().dropItem(loc, stack));
 	}
