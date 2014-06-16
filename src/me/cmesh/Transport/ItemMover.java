@@ -85,7 +85,7 @@ class ItemMover implements Runnable {
 				}
 				
 				target = target.getRelative(nextFace);
-				double speed = 0.3;
+				double speed = .3;
 				switch (nextFace) {
 					case NORTH:
 						v = new Vector(0,0,-speed);
@@ -103,6 +103,7 @@ class ItemMover implements Runnable {
 						Cancel();
 						return;
 				}
+				item.teleport(blockCenter(curr));
 				direction = nextFace;
 			} else {
 				Bukkit.getLogger().info("Not on carpet");
@@ -131,13 +132,15 @@ class ItemMover implements Runnable {
 	}
 
 	private static Location blockCenter(Block block) {
-		return block.getLocation().add(0.5, 0, 0.5);
+		return block.getLocation().add(0.5, 0.5, 0.5);
 	}
 
 	public static ItemMover StartItem(ItemStack stack, Location loc) {
 		//center loc
 		loc = blockCenter(loc.getBlock());
+		Item item = loc.getWorld().dropItem(loc, stack);
+		item.teleport(item);
 		
-		return new ItemMover(loc.getWorld().dropItem(loc, stack));
+		return new ItemMover(item);
 	}
 }
