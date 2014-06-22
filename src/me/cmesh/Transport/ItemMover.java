@@ -1,5 +1,7 @@
 package me.cmesh.Transport;
 
+import me.cmesh.BlockUtil.WoolUtil;
+
 import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
@@ -11,7 +13,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
-@SuppressWarnings("deprecation")
 class ItemMover implements Runnable {
 	private Item item;
 	private int task;
@@ -23,7 +24,7 @@ class ItemMover implements Runnable {
 	public ItemMover(Item item) {
 		this.item = item;
 		target = item.getLocation().getBlock();
-		color = DyeColor.getByWoolData(target.getData());
+		color = WoolUtil.Color(target);
 		
 		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 		task = scheduler.scheduleSyncRepeatingTask(Transport.Instance, this, 2l, 2l);
@@ -43,7 +44,7 @@ class ItemMover implements Runnable {
 			}
 			
 			Block next = block.getRelative(f);
-			if (next.getType() == Material.CARPET && DyeColor.getByWoolData(next.getData()) == color) {
+			if (next.getType() == Material.CARPET && WoolUtil.Color(next) == color) {
 				return f;
 			}
 		}
